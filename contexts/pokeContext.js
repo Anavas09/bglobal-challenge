@@ -1,4 +1,5 @@
 import { createContext, useContext, useState } from "react";
+import { useGetPokemons, useSearchPokemon } from "../api";
 
 const Context = createContext();
 
@@ -13,6 +14,8 @@ export function PokeProvider({ children, data }) {
   const [detail, setDetail] = useState(false);
   const [pokemons, setPokemons] = useState(data);
   const [count, setCount] = useState(1118);
+  const { getPokemon } = useSearchPokemon();
+  const { getPokemons } = useGetPokemons(url);
 
   pokemonClass.pokemons = pokemons;
   pokemonClass.detail = detail;
@@ -26,8 +29,7 @@ export function PokeProvider({ children, data }) {
 
   //Obtiene los pokemons de la api
   pokemonClass.getPokemons = async () => {
-    const res = await fetch(url);
-    const data = await res.json();
+    const data = await getPokemons();
     setCount(data.count);
     setUrl(data.next ? data.next : null);
 
@@ -52,15 +54,12 @@ export function PokeProvider({ children, data }) {
     if (nombrePokemon.length >= 3) {
       let pokemon;
       try {
-        let res = await fetch(
-          "https://pokeapi.co/api/v2/pokemon/" + nombrePokemon.toLowerCase()
-        );
-        let data = await res.json();
+        const data = await getPokemon(nombrePokemon);
         setUrl("https://pokeapi.co/api/v2/pokemon");
         setPokemons([[data]]);
         pokemon = data;
       } catch (err) {
-        console.error("Error", err);
+        console.error("Error: Pokemon no encontrado", err);
       }
 
       return pokemon;
